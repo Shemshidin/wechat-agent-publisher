@@ -222,7 +222,7 @@ Codex、OpenClaw 等 agent 应加载该 skill，并通过 CLI 执行渲染或同
 
 ```powershell
 Copy-Item -Recurse -Force .\skills\wechat-agent-publisher $env:USERPROFILE\.codex\skills\
-Copy-Item -Recurse -Force .\skills\wechat-agent-publisher $env:USERPROFILE\.agents\skills\
+Copy-Item -Recurse -Force .\skills\wechat-agent-publisher $env:USERPROFILE\.openclaw\workspace\skills\
 ```
 
 推荐 agent 工作流：
