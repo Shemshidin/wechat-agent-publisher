@@ -200,6 +200,13 @@ skills/wechat-agent-publisher/SKILL.md
 
 Codex、OpenClaw 等 agent 应加载该 skill，并通过 CLI 执行渲染或同步，不要临时手写转换逻辑。
 
+本机安装到 Codex / OpenClaw：
+
+```powershell
+Copy-Item -Recurse -Force .\skills\wechat-agent-publisher $env:USERPROFILE\.codex\skills\
+Copy-Item -Recurse -Force .\skills\wechat-agent-publisher $env:USERPROFILE\.agents\skills\
+```
+
 推荐 agent 工作流：
 
 1. 先运行 `render --full` 生成预览

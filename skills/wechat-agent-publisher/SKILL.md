@@ -7,6 +7,28 @@ description: Render Markdown files into WeChat Official Account compatible HTML 
 
 Use this skill to turn a Markdown file into WeChat-safe HTML or send it to a WeChat Official Account draft. Do not reimplement the renderer; call the project CLI.
 
+## Project Location
+
+Default local project root on this machine:
+
+```text
+D:\Code\wechat-agent-publisher
+```
+
+Run CLI commands from that directory unless the user provides another clone path. If the directory is missing, clone it first from one of the maintained remotes:
+
+```bash
+git clone https://github.com/Shemshidin/wechat-agent-publisher.git
+# or
+git clone https://cnb.cool/shemshidin/wechat-agent-publisher
+```
+
+Install dependencies once before first use:
+
+```bash
+npm install
+```
+
 ## Quick Start
 
 From the project root:
