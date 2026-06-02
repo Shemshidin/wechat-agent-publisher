@@ -19,6 +19,23 @@ test('defaults to classic theme, small font, and advanced options', () => {
   assert.equal(options.codeLineNumber, true);
 });
 
+test('default small font renders body and table text as 14px with blue accents', async () => {
+  const result = await renderMarkdown([
+    '# 标题',
+    '',
+    '正文 **重点**',
+    '',
+    '| 项目 | 说明 |',
+    '| --- | --- |',
+    '| A | B |',
+  ].join('\n'));
+
+  assert.match(result.html, /font-size:\s*14px/);
+  assert.match(result.html, /<th[^>]+font-size:\s*14px/);
+  assert.match(result.html, /<td[^>]+font-size:\s*14px/);
+  assert.match(result.html, /#0366d6/i);
+});
+
 test('resolves local markdown images to file urls for preview', async () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wechat-agent-publisher-images-'));
   const imagePath = path.join(dir, 'image.png');
@@ -191,6 +208,7 @@ test('sync maps Wenyan-style frontmatter fields to WeChat article payload', asyn
     'title: Frontmatter 标题',
     'cover: cover.png',
     'author: 张三',
+    'summary: 公众号摘要',
     'source_url: https://example.com/original',
     'need_open_comment: true',
     'only_fans_can_comment: false',
@@ -221,9 +239,11 @@ test('sync maps Wenyan-style frontmatter fields to WeChat article payload', asyn
     });
     assert.equal(result.article.title, 'Frontmatter 标题');
     assert.equal(result.article.author, '张三');
+    assert.equal(result.article.digest, '公众号摘要');
     assert.equal(result.article.content_source_url, 'https://example.com/original');
     assert.equal(result.article.need_open_comment, 1);
     assert.equal(result.article.only_fans_can_comment, 0);
+    assert.equal(draftBody.articles[0].digest, '公众号摘要');
     assert.equal(draftBody.articles[0].content_source_url, 'https://example.com/original');
   } finally {
     global.fetch = originalFetch;

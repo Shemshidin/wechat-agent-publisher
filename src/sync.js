@@ -210,7 +210,14 @@ async function syncMarkdownFile(inputPath, options = {}) {
     options.onSvgProgress || options.onMathProgress || null
   );
   const content = cleanHtmlForDraft(svgResult.html);
-  const digest = pickFirstString(options.digest, frontmatter.digest, frontmatter.excerpt).slice(0, 120);
+  const digest = pickFirstString(
+    options.digest,
+    frontmatter.digest,
+    frontmatter.summary,
+    frontmatter.abstract,
+    frontmatter.description,
+    frontmatter.excerpt
+  ).slice(0, 120);
   const author = pickFirstString(options.author, account.author, frontmatter.author);
   const sourceUrl = pickFirstString(
     options.sourceUrl,

@@ -41,7 +41,7 @@ node src/cli.js render path/to/article.md --output out/article.html
 Default rendering choices:
 
 - Theme: `classic` / `经典`
-- Font size: `small` / `小`
+- Font size: `small` / `小` (14px body and table text)
 - Advanced options: enabled
 
 ## Render Workflow
@@ -103,6 +103,7 @@ Sync behavior:
 
 - Cover source priority: `--cover`, frontmatter `cover`, first article image.
 - Frontmatter `author`, `source_url`, `need_open_comment`, and `only_fans_can_comment` are mapped into the WeChat article payload.
+- Article summary is mapped into the WeChat draft `digest` field. Use `summary` in frontmatter for new articles; supported priority is `digest`, `summary`, `abstract`, `description`, then `excerpt`.
 - Article images are uploaded through WeChat's article image API.
 - Formula SVG is rasterized to PNG and uploaded.
 - Failed article image uploads become placeholders instead of aborting draft creation.

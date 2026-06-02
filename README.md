@@ -70,7 +70,7 @@ node src/cli.js render article.md --no-normalize-chinese-punctuation --output ou
 | `media` | 清爽媒体 |
 | `colorful` | 彩色强调 |
 
-可用字号：`xs`、`small`、`normal`、`large`、`xl`，也可以使用 `1..5`。
+可用字号：`xs`、`small`、`normal`、`large`、`xl`，也可以使用 `1..5`。其中 `small` / `小` 对应正文 14px，表格单元格文字也会显式使用 14px。
 
 默认值：
 
@@ -119,6 +119,7 @@ node src/cli.js sync article.md --draft-media-id MEDIA_ID --draft-index 0
 title: 在本地跑一个大语言模型(2) - 给模型提供外部知识库
 cover: /Users/xxx/image.jpg
 author: xxx
+summary: 这是一段显示在微信公众号文章摘要里的文字
 source_url: https://example.com/original
 need_open_comment: true
 only_fans_can_comment: false
@@ -132,6 +133,9 @@ only_fans_can_comment: false
 | `title` | 推荐 | 文章标题；未设置时回退到一级标题或文件名 |
 | `cover` | 否 | 封面图片，本地路径、相对路径、`file://`、data URL、网络 URL 均可 |
 | `author` | 否 | 作者 |
+| `summary` | 否 | 文章摘要，映射到微信公众号草稿 `digest` 字段 |
+| `digest` | 否 | 文章摘要；优先级高于 `summary` |
+| `abstract` / `description` / `excerpt` | 否 | 摘要别名；兼容已有写法 |
 | `source_url` | 否 | 原文链接，映射到微信 `content_source_url` |
 | `need_open_comment` | 否 | 是否打开评论 |
 | `only_fans_can_comment` | 否 | 是否仅粉丝可评论 |

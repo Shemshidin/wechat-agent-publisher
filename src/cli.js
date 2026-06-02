@@ -25,7 +25,7 @@ Sync options:
   --app-id <id>        WeChat Official Account AppID, or WECHAT_APP_ID
   --app-secret <sec>   WeChat AppSecret, or WECHAT_APP_SECRET
   --cover <path/url>   Cover image. Defaults to frontmatter cover or first article image
-  --digest <text>      Draft digest. Defaults to frontmatter digest/excerpt
+  --digest <text>      Draft digest. Defaults to frontmatter digest/summary/abstract/description/excerpt
   --author <name>      Article author
   --source-url <url>   Original article URL. Maps to WeChat content_source_url
   --proxy-url <url>    Optional HTTPS proxy URL
