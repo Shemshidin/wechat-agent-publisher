@@ -1,0 +1,4 @@
+node_modules/
+out/
+.env
+wechat-agent-publisher.config.json

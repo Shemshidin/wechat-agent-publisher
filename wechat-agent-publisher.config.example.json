@@ -1,0 +1,19 @@
+{
+  "theme": "classic",
+  "fontSize": "small",
+  "themeColor": "blue",
+  "customColor": "#0366d6",
+  "advanced": true,
+  "normalizeChinesePunctuation": true,
+  "vaultRoot": "",
+  "showImageCaption": true,
+  "account": {
+    "appId": "",
+    "appSecret": "",
+    "author": "",
+    "sourceUrl": "",
+    "contentSourceUrl": "",
+    "openComment": true,
+    "onlyFansCanComment": false
+  }
+}

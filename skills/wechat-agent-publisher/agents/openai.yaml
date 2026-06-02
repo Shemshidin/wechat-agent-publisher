@@ -1,0 +1,4 @@
+interface:
+  display_name: "WeChat Agent Publisher"
+  short_description: "Markdown to WeChat HTML and draft sync."
+  default_prompt: "Use $wechat-agent-publisher to render this Markdown file to WeChat-ready HTML or sync it to a WeChat Official Account draft."
