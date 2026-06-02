@@ -136,12 +136,13 @@ class WechatAPI {
     });
   }
 
-  async createDraft(article) {
+  async createDraft(articles) {
     return this.actionWithTokenRetry(async (token) => {
       const url = `https://api.weixin.qq.com/cgi-bin/draft/add?access_token=${token}`;
+      const articleList = Array.isArray(articles) ? articles : [articles];
       const data = await this.sendRequest(url, {
         method: 'POST',
-        body: JSON.stringify({ articles: [article] }),
+        body: JSON.stringify({ articles: articleList }),
       });
       if (data.media_id) return data;
       throw new Error(`创建草稿失败: ${data.errmsg || JSON.stringify(data)} (${data.errcode || 'N/A'})`);

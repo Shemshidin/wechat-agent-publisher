@@ -3,12 +3,12 @@ const fs = require('fs');
 const path = require('path');
 const { renderMarkdownFile } = require('./render');
 const { loadProjectConfig, readJsonFile, buildRenderOptions } = require('./config');
-const { syncMarkdownFile } = require('./sync');
+const { syncMarkdownFiles } = require('./sync');
 
 function printHelp() {
   console.log(`Usage:
   wechat-agent-publisher render <file.md> [options]
-  wechat-agent-publisher sync <file.md> [options]
+  wechat-agent-publisher sync <file.md> [file2.md ...] [options]
 
 Render options:
   --theme <name>       Theme: minimal|classic|elegant|paper|grid|typo|media|colorful
@@ -24,17 +24,18 @@ Render options:
 Sync options:
   --app-id <id>        WeChat Official Account AppID, or WECHAT_APP_ID
   --app-secret <sec>   WeChat AppSecret, or WECHAT_APP_SECRET
-  --cover <path/url>   Cover image. Defaults to frontmatter cover or first article image
+  --cover <path/url>   Cover image for single-article sync. Multi-article sync uses each file's frontmatter cover or first image
   --digest <text>      Draft digest. Defaults to frontmatter digest/summary/abstract/description/excerpt
   --author <name>      Article author
   --source-url <url>   Original article URL. Maps to WeChat content_source_url
   --proxy-url <url>    Optional HTTPS proxy URL
   --draft-media-id <id> Update an existing draft media_id instead of creating a new draft
-  --draft-index <n>    Article index for draft update. Default: 0
+  --draft-index <n>    Article index for draft update. Default: 0. Multi-article update writes sequential indexes from this value
 
 Notes:
   Math renders as MathJax SVG for preview and is rasterized/uploaded during sync.
   Mermaid fences are reported as diagnostics; render diagrams to images before final sync.
+  Multi-article sync creates one draft with files ordered as head article, second article, and so on.
 `);
 }
 
@@ -94,7 +95,8 @@ async function run() {
   }
 
   const args = parseArgs(rest);
-  const inputPath = args._[0];
+  const inputPaths = args._;
+  const inputPath = inputPaths[0];
   if (!inputPath) {
     printHelp();
     process.exitCode = 1;
@@ -123,7 +125,7 @@ async function run() {
   }
 
   if (command === 'sync') {
-    const result = await syncMarkdownFile(inputPath, {
+    const result = await syncMarkdownFiles(inputPaths, {
       ...buildRenderOptions(options),
       ...options,
       onImageProgress: (current, total) => {
@@ -135,6 +137,8 @@ async function run() {
       mediaId: result.mediaId,
       isUpdate: result.isUpdate,
       title: result.article.title,
+      titles: result.articles?.map((article) => article.title) || [result.article.title],
+      articleCount: result.articles?.length || 1,
       diagnostics: result.diagnostics,
       imageUploadFailures: result.imageUploadFailures,
       svgUploadFailures: result.svgUploadFailures,

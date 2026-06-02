@@ -6,7 +6,7 @@ const test = require('node:test');
 
 const { buildRenderOptions } = require('../src/config');
 const { renderMarkdown } = require('../src/render');
-const { srcToBlob, syncMarkdownFile } = require('../src/sync');
+const { srcToBlob, syncMarkdownFile, syncMarkdownFiles } = require('../src/sync');
 const { resolveImageSrc } = require('../src/image-resolver');
 
 test('defaults to classic theme, xs/small-in-Chinese font, and advanced options', () => {
@@ -198,6 +198,64 @@ test('syncs markdown through mocked WeChat draft API', async () => {
     assert.equal(result.article.title, '同步测试');
     assert.match(result.article.content, /https:\/\/mmbiz\.qpic\.cn\/body\.png/);
     assert.equal(calls.some((call) => call.url.includes('/draft/add')), true);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test('syncs multiple markdown files into one multi-article WeChat draft', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wechat-agent-publisher-multi-sync-'));
+  fs.writeFileSync(path.join(dir, 'cover1.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+  fs.writeFileSync(path.join(dir, 'cover2.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+  const firstPath = path.join(dir, 'first.md');
+  const secondPath = path.join(dir, 'second.md');
+  fs.writeFileSync(firstPath, [
+    '---',
+    'title: 头条',
+    'cover: cover1.png',
+    'summary: 头条摘要',
+    '---',
+    '',
+    '# 头条',
+  ].join('\n'));
+  fs.writeFileSync(secondPath, [
+    '---',
+    'title: 第二条',
+    'cover: cover2.png',
+    'summary: 第二条摘要',
+    '---',
+    '',
+    '# 第二条',
+  ].join('\n'));
+
+  let draftBody = null;
+  let coverUploadCount = 0;
+  const originalFetch = global.fetch;
+  global.fetch = async (url, options = {}) => {
+    if (String(url).includes('/cgi-bin/token')) {
+      return { json: async () => ({ access_token: 'token', expires_in: 7200 }) };
+    }
+    if (String(url).includes('/material/add_material')) {
+      coverUploadCount += 1;
+      return { json: async () => ({ media_id: `cover-media-id-${coverUploadCount}` }) };
+    }
+    if (String(url).includes('/draft/add')) {
+      draftBody = JSON.parse(options.body);
+      return { json: async () => ({ media_id: 'draft-media-id' }) };
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  try {
+    const result = await syncMarkdownFiles([firstPath, secondPath], {
+      account: { appId: 'app-id', appSecret: 'app-secret' },
+    });
+    assert.equal(result.mediaId, 'draft-media-id');
+    assert.equal(result.articles.length, 2);
+    assert.deepEqual(result.articles.map((article) => article.title), ['头条', '第二条']);
+    assert.equal(draftBody.articles.length, 2);
+    assert.equal(draftBody.articles[0].thumb_media_id, 'cover-media-id-1');
+    assert.equal(draftBody.articles[1].thumb_media_id, 'cover-media-id-2');
   } finally {
     global.fetch = originalFetch;
   }

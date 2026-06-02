@@ -101,6 +101,20 @@ node src/cli.js sync article.md --cover cover.png
 node src/cli.js sync article.md --draft-media-id MEDIA_ID --draft-index 0
 ```
 
+创建同一个草稿里的多篇图文（按参数顺序：头条、第二条、第三条）：
+
+```bash
+node src/cli.js sync first.md second.md third.md
+```
+
+多篇图文同步时，每篇 Markdown 需要在自己的 frontmatter 里设置 `cover`，或正文里有可作为封面的第一张图片。`--cover`、`--title`、`--digest`、`--source-url` 这类单篇覆盖参数只适用于单篇同步。
+
+更新已有多图文草稿时，会从 `--draft-index` 开始按顺序更新：
+
+```bash
+node src/cli.js sync first.md second.md --draft-media-id MEDIA_ID --draft-index 0
+```
+
 同步规则：
 
 - 封面优先级：`--cover`、frontmatter `cover`、正文第一张图片

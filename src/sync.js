@@ -182,17 +182,20 @@ function assertSupportedArticleType(frontmatter = {}) {
   throw new Error(`不支持的 frontmatter type: ${type}`);
 }
 
-async function syncMarkdownFile(inputPath, options = {}) {
+async function buildDraftArticle(inputPath, api, account, options = {}, context = {}) {
   ensureDom();
   const resolvedInput = path.resolve(inputPath);
   const baseDir = path.dirname(resolvedInput);
-  const account = buildWechatAccount(options.account || options);
-  const api = new WechatAPI(account.appId, account.appSecret, { proxyUrl: options.proxyUrl || '' });
   const rendered = await renderMarkdownFile(resolvedInput, options);
   const frontmatter = rendered.frontmatter || {};
   assertSupportedArticleType(frontmatter);
+  const allowArticleOptionOverrides = context.allowArticleOptionOverrides !== false;
 
-  const coverSrc = pickFirstString(options.cover, frontmatter.cover, findFirstImageSrc(rendered.fragmentHtml));
+  const coverSrc = pickFirstString(
+    allowArticleOptionOverrides ? options.cover : '',
+    frontmatter.cover,
+    findFirstImageSrc(rendered.fragmentHtml)
+  );
   if (!coverSrc) throw new Error('Missing cover image. Provide --cover or frontmatter cover.');
 
   const cover = await srcToBlob(coverSrc, baseDir);
@@ -211,7 +214,7 @@ async function syncMarkdownFile(inputPath, options = {}) {
   );
   const content = cleanHtmlForDraft(svgResult.html);
   const digest = pickFirstString(
-    options.digest,
+    allowArticleOptionOverrides ? options.digest : '',
     frontmatter.digest,
     frontmatter.summary,
     frontmatter.abstract,
@@ -220,8 +223,8 @@ async function syncMarkdownFile(inputPath, options = {}) {
   ).slice(0, 120);
   const author = pickFirstString(options.author, account.author, frontmatter.author);
   const sourceUrl = pickFirstString(
-    options.sourceUrl,
-    options.contentSourceUrl,
+    allowArticleOptionOverrides ? options.sourceUrl : '',
+    allowArticleOptionOverrides ? options.contentSourceUrl : '',
     account.contentSourceUrl,
     frontmatter.source_url,
     frontmatter.sourceUrl,
@@ -231,7 +234,12 @@ async function syncMarkdownFile(inputPath, options = {}) {
   const openComment = parseFrontmatterBoolean(frontmatter.need_open_comment, account.openComment);
   const onlyFansCanComment = parseFrontmatterBoolean(frontmatter.only_fans_can_comment, account.onlyFansCanComment);
   const article = {
-    title: pickFirstString(options.title, frontmatter.title, rendered.title, path.basename(resolvedInput, path.extname(resolvedInput))).slice(0, 64),
+    title: pickFirstString(
+      allowArticleOptionOverrides ? options.title : '',
+      frontmatter.title,
+      rendered.title,
+      path.basename(resolvedInput, path.extname(resolvedInput))
+    ).slice(0, 64),
     content,
     thumb_media_id: coverResult.media_id,
     author,
@@ -242,19 +250,93 @@ async function syncMarkdownFile(inputPath, options = {}) {
   if (typeof openComment === 'boolean') article.need_open_comment = openComment ? 1 : 0;
   if (typeof onlyFansCanComment === 'boolean') article.only_fans_can_comment = onlyFansCanComment ? 1 : 0;
 
-  const draftMediaId = String(options.draftMediaId || '').trim();
-  const draftIndex = Number.isFinite(Number(options.draftIndex)) ? Number(options.draftIndex) : 0;
-  const result = draftMediaId
-    ? await api.updateDraft(draftMediaId, draftIndex, article)
-    : await api.createDraft(article);
-
   return {
-    mediaId: result.media_id,
-    isUpdate: !!draftMediaId,
+    inputPath: resolvedInput,
     article,
     diagnostics: rendered.diagnostics || [],
     imageUploadFailures: imageResult.failures,
     svgUploadFailures: svgResult.failures,
+  };
+}
+
+async function syncMarkdownFile(inputPath, options = {}) {
+  const account = buildWechatAccount(options.account || options);
+  const api = new WechatAPI(account.appId, account.appSecret, { proxyUrl: options.proxyUrl || '' });
+  const built = await buildDraftArticle(inputPath, api, account, options, {
+    allowArticleOptionOverrides: true,
+  });
+
+  const draftMediaId = String(options.draftMediaId || '').trim();
+  const draftIndex = Number.isFinite(Number(options.draftIndex)) ? Number(options.draftIndex) : 0;
+  const result = draftMediaId
+    ? await api.updateDraft(draftMediaId, draftIndex, built.article)
+    : await api.createDraft(built.article);
+
+  return {
+    mediaId: result.media_id,
+    isUpdate: !!draftMediaId,
+    article: built.article,
+    diagnostics: built.diagnostics,
+    imageUploadFailures: built.imageUploadFailures,
+    svgUploadFailures: built.svgUploadFailures,
+  };
+}
+
+async function syncMarkdownFiles(inputPaths, options = {}) {
+  const paths = Array.isArray(inputPaths) ? inputPaths.filter(Boolean) : [inputPaths].filter(Boolean);
+  if (paths.length === 0) throw new Error('Missing markdown input files.');
+  if (paths.length === 1) {
+    const single = await syncMarkdownFile(paths[0], options);
+    return {
+      ...single,
+      articles: [single.article],
+      articleResults: [{
+        inputPath: path.resolve(paths[0]),
+        article: single.article,
+        diagnostics: single.diagnostics,
+        imageUploadFailures: single.imageUploadFailures,
+        svgUploadFailures: single.svgUploadFailures,
+      }],
+    };
+  }
+
+  const articleSpecificOptions = ['cover', 'title', 'digest', 'sourceUrl', 'contentSourceUrl'];
+  for (const key of articleSpecificOptions) {
+    if (options[key]) {
+      throw new Error(`多文章同步时不支持全局 --${key.replace(/[A-Z]/g, (char) => `-${char.toLowerCase()}`)}；请在每篇 Markdown frontmatter 中分别设置对应字段。`);
+    }
+  }
+
+  const account = buildWechatAccount(options.account || options);
+  const api = new WechatAPI(account.appId, account.appSecret, { proxyUrl: options.proxyUrl || '' });
+  const articleResults = [];
+  for (const inputPath of paths) {
+    articleResults.push(await buildDraftArticle(inputPath, api, account, options, {
+      allowArticleOptionOverrides: false,
+    }));
+  }
+  const articles = articleResults.map((result) => result.article);
+  const draftMediaId = String(options.draftMediaId || '').trim();
+  const draftIndex = Number.isFinite(Number(options.draftIndex)) ? Number(options.draftIndex) : 0;
+  let result;
+  if (draftMediaId) {
+    for (let i = 0; i < articles.length; i += 1) {
+      result = await api.updateDraft(draftMediaId, draftIndex + i, articles[i]);
+    }
+    result = result || { media_id: draftMediaId };
+  } else {
+    result = await api.createDraft(articles);
+  }
+
+  return {
+    mediaId: result.media_id,
+    isUpdate: !!draftMediaId,
+    articles,
+    article: articles[0],
+    articleResults,
+    diagnostics: articleResults.flatMap((item) => item.diagnostics),
+    imageUploadFailures: articleResults.flatMap((item) => item.imageUploadFailures),
+    svgUploadFailures: articleResults.flatMap((item) => item.svgUploadFailures),
   };
 }
 
@@ -266,5 +348,7 @@ module.exports = {
   svgToPngBlob,
   findFirstImageSrc,
   parseFrontmatterBoolean,
+  buildDraftArticle,
   syncMarkdownFile,
+  syncMarkdownFiles,
 };

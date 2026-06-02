@@ -99,6 +99,20 @@ To update an existing draft:
 node src/cli.js sync path/to/article.md --draft-media-id MEDIA_ID --draft-index 0
 ```
 
+To create a multi-article draft, pass files in order. The first file becomes the head article, the second file becomes the second article, and so on:
+
+```bash
+node src/cli.js sync first.md second.md third.md
+```
+
+For multi-article sync, each Markdown file must define its own `cover` frontmatter or contain a first body image usable as cover. Do not use single-article override flags such as `--cover`, `--title`, `--digest`, or `--source-url` with multiple input files.
+
+To update an existing multi-article draft, pass `--draft-media-id`; files are written to sequential indexes starting at `--draft-index`:
+
+```bash
+node src/cli.js sync first.md second.md --draft-media-id MEDIA_ID --draft-index 0
+```
+
 Sync behavior:
 
 - Cover source priority: `--cover`, frontmatter `cover`, first article image.
