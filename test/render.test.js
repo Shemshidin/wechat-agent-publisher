@@ -9,17 +9,17 @@ const { renderMarkdown } = require('../src/render');
 const { srcToBlob, syncMarkdownFile } = require('../src/sync');
 const { resolveImageSrc } = require('../src/image-resolver');
 
-test('defaults to classic theme, small font, and advanced options', () => {
+test('defaults to classic theme, xs/small-in-Chinese font, and advanced options', () => {
   const options = buildRenderOptions({});
   assert.equal(options.theme, 'wechat');
   assert.equal(options.themeColor, 'blue');
   assert.equal(options.customColor, '#0366d6');
-  assert.equal(options.fontSize, 2);
+  assert.equal(options.fontSize, 1);
   assert.equal(options.macCodeBlock, true);
   assert.equal(options.codeLineNumber, true);
 });
 
-test('default small font renders body and table text as 14px with blue accents', async () => {
+test('default xs/small-in-Chinese font renders body and table text as 14px with blue accents', async () => {
   const result = await renderMarkdown([
     '# 标题',
     '',
@@ -84,6 +84,10 @@ test('renders image-sensitive callouts as warning-first swipe blocks', async () 
 
 test('normalizes requested themes and font sizes', () => {
   assert.equal(buildRenderOptions({ theme: '纸张长文', fontSize: '小' }).theme, 'paper');
+  assert.equal(buildRenderOptions({ fontSize: '小' }).fontSize, 1);
+  assert.equal(buildRenderOptions({ fontSize: 'xs' }).fontSize, 1);
+  assert.equal(buildRenderOptions({ fontSize: '较小' }).fontSize, 2);
+  assert.equal(buildRenderOptions({ fontSize: 'small' }).fontSize, 2);
   assert.equal(buildRenderOptions({ theme: 'grid', fontSize: 'xl' }).fontSize, 5);
   assert.equal(buildRenderOptions({ theme: '彩色强调', fontSize: '1' }).theme, 'colorful');
 });

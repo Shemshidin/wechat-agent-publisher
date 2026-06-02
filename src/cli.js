@@ -12,7 +12,7 @@ function printHelp() {
 
 Render options:
   --theme <name>       Theme: minimal|classic|elegant|paper|grid|typo|media|colorful
-  --font-size <size>   Font size: xs|small|normal|large|xl or 1..5. Default: small
+  --font-size <size>   Font size: xs|small|normal|large|xl or 1..5. Default: xs / 小
   --output <file>      Output HTML file
   --full               Write a complete HTML document instead of a fragment
   --vault-root <dir>   Optional Obsidian vault root for resolving wiki/local images

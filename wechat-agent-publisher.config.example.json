@@ -1,6 +1,6 @@
 {
   "theme": "classic",
-  "fontSize": "small",
+  "fontSize": "xs",
   "themeColor": "blue",
   "customColor": "#0366d6",
   "advanced": true,

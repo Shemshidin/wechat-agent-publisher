@@ -40,7 +40,7 @@ window.AppleTheme = class AppleTheme {
    */
   static FONT_SIZES = {
     1: { base: 14, h1: 26, h2: 20, h3: 16, h4: 14, h5: 14, h6: 14, code: 12, caption: 12 },
-    2: { base: 14, h1: 28, h2: 21, h3: 17, h4: 15, h5: 15, h6: 15, code: 13, caption: 12 },
+    2: { base: 15, h1: 28, h2: 21, h3: 17, h4: 15, h5: 15, h6: 15, code: 13, caption: 12 },
     3: { base: 16, h1: 30, h2: 22, h3: 18, h4: 16, h5: 16, h6: 16, code: 14, caption: 13 }, // 推荐
     4: { base: 17, h1: 32, h2: 24, h3: 19, h4: 17, h5: 17, h6: 17, code: 15, caption: 14 },
     5: { base: 18, h1: 34, h2: 26, h3: 20, h4: 18, h5: 18, h6: 18, code: 16, caption: 14 },

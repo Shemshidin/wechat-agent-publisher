@@ -41,7 +41,7 @@ node src/cli.js render path/to/article.md --output out/article.html
 Default rendering choices:
 
 - Theme: `classic` / `经典`
-- Font size: `small` / `小` (14px body and table text)
+- Font size: `xs` / `小` (14px body and table text)
 - Advanced options: enabled
 
 ## Render Workflow
@@ -55,7 +55,7 @@ Default rendering choices:
 Example:
 
 ```bash
-node src/cli.js render notes/post.md --theme classic --font-size small --output out/post.html
+node src/cli.js render notes/post.md --theme classic --font-size xs --output out/post.html
 ```
 
 Use `--full` only when the user wants a standalone browser HTML document. For WeChat paste/sync, the fragment output is preferred.
@@ -124,7 +124,7 @@ Read `references/themes.md` when choosing or explaining themes. Valid theme valu
 
 ## Font Sizes
 
-Valid font sizes are `xs`, `small`, `normal`, `large`, `xl`, or numeric `1..5`. Use `small` unless the user asks otherwise.
+Valid font sizes are `xs`, `small`, `normal`, `large`, `xl`, or numeric `1..5`. Use `xs` unless the user asks otherwise. Chinese `小` maps to `xs` / 14px; Chinese `较小` maps to `small` / 15px.
 
 ## Config
 
@@ -135,7 +135,7 @@ Preferred config keys:
 ```json
 {
   "theme": "classic",
-  "fontSize": "small",
+  "fontSize": "xs",
   "themeColor": "blue",
   "customColor": "#0366d6",
   "advanced": true,

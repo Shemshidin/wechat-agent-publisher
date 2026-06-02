@@ -6,7 +6,7 @@
 
 - Markdown 转微信公众号内联样式 HTML
 - 支持 Agent skill 调用，避免每次让 agent 重写转换逻辑
-- 默认使用 `经典` 主题、`小` 字号、蓝色主题色 `#0366d6`
+- 默认使用 `经典` 主题、`小` 字号（`xs` / 14px）、蓝色主题色 `#0366d6`
 - 支持主题：`简约`、`经典`、`优雅`、`纸张长文`、`网格文档`、`Typo`、`清爽媒体`、`彩色强调`
 - 支持 Obsidian 图片语法和本地图片路径解析
 - 支持 `image-swipe` / `image-sensitive` 横向滑动图片块
@@ -39,7 +39,7 @@ node src/cli.js render article.md --output out/article.html
 指定主题和字号：
 
 ```bash
-node src/cli.js render article.md --theme classic --font-size small --output out/article.html
+node src/cli.js render article.md --theme classic --font-size xs --output out/article.html
 node src/cli.js render article.md --theme paper --font-size normal --full --output out/article.preview.html
 ```
 
@@ -70,12 +70,12 @@ node src/cli.js render article.md --no-normalize-chinese-punctuation --output ou
 | `media` | 清爽媒体 |
 | `colorful` | 彩色强调 |
 
-可用字号：`xs`、`small`、`normal`、`large`、`xl`，也可以使用 `1..5`。其中 `small` / `小` 对应正文 14px，表格单元格文字也会显式使用 14px。
+可用字号：`xs`、`small`、`normal`、`large`、`xl`，也可以使用 `1..5`。中文名中，`小` 对应 `xs` / 正文 14px，`较小` 对应 `small` / 正文 15px。默认使用 `小`，正文和表格单元格文字都会显式使用 14px。
 
 默认值：
 
 - 主题：`classic` / `经典`
-- 字号：`small` / `小`
+- 字号：`xs` / `小`
 - 主题色：`blue` / `#0366d6`
 - 高级选项：开启
 
