@@ -111,12 +111,26 @@ async function replaceArticleImages(html, api, baseDir, onProgress = null) {
 
 function ensureSvgNamespace(svgText) {
   const source = String(svgText || '');
-  if (/xmlns=/.test(source)) return source;
+  if (/^<svg\b[^>]*\sxmlns=/i.test(source)) return source;
   return source.replace(/<svg\b/i, '<svg xmlns="http://www.w3.org/2000/svg"');
 }
 
+function removeDuplicateXmlnsAttributes(svgText) {
+  return String(svgText || '').replace(/<[^!?/][^>]*>/g, (tag) => {
+    const seen = new Set();
+    return tag.replace(/\s(xmlns(?::[A-Za-z_][\w.-]*)?)="[^"]*"/g, (attribute, name) => {
+      const key = String(name || '').toLowerCase();
+      if (seen.has(key)) return '';
+      seen.add(key);
+      return attribute;
+    });
+  });
+}
+
 async function svgToPngBlob(svgElement) {
-  const svgText = ensureSvgNamespace(new XMLSerializer().serializeToString(svgElement));
+  const svgText = removeDuplicateXmlnsAttributes(
+    ensureSvgNamespace(new XMLSerializer().serializeToString(svgElement))
+  );
   const pngBuffer = await sharp(Buffer.from(svgText)).png().toBuffer();
   return new Blob([pngBuffer], { type: 'image/png' });
 }
@@ -131,12 +145,13 @@ async function replaceSvgElements(html, api, onProgress = null) {
 
   for (const svg of svgs) {
     try {
+      const isMermaid = !!svg.closest('[data-wechat-agent-mermaid]');
       const blob = await svgToPngBlob(svg);
-      const result = await api.uploadImage(blob, 'formula.png');
+      const result = await api.uploadImage(blob, isMermaid ? 'mermaid.png' : 'formula.png');
       const img = document.createElement('img');
       img.setAttribute('src', result.url);
-      img.setAttribute('alt', '公式');
-      img.setAttribute('class', 'math-formula-image');
+      img.setAttribute('alt', isMermaid ? 'Mermaid 图表' : '公式');
+      img.setAttribute('class', isMermaid ? 'mermaid-diagram-image' : 'math-formula-image');
       img.setAttribute('style', 'display:inline-block;vertical-align:middle;max-width:100%;height:auto;');
       svg.replaceWith(img);
     } catch (error) {
@@ -346,6 +361,7 @@ module.exports = {
   replaceArticleImages,
   replaceSvgElements,
   svgToPngBlob,
+  removeDuplicateXmlnsAttributes,
   findFirstImageSrc,
   parseFrontmatterBoolean,
   buildDraftArticle,

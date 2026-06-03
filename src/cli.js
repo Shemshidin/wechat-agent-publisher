@@ -34,7 +34,7 @@ Sync options:
 
 Notes:
   Math renders as MathJax SVG for preview and is rasterized/uploaded during sync.
-  Mermaid fences are reported as diagnostics; render diagrams to images before final sync.
+  Mermaid fences render as SVG for preview and are rasterized/uploaded during sync.
   Multi-article sync creates one draft with files ordered as head article, second article, and so on.
 `);
 }

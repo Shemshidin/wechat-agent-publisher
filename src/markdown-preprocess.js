@@ -36,39 +36,11 @@ function normalizeTaskListMarkers(markdown) {
   return lines.join('\n');
 }
 
-function collectMermaidDiagnostics(markdown) {
-  const diagnostics = [];
-  const lines = String(markdown || '').split('\n');
-  let fence = null;
-
-  for (let i = 0; i < lines.length; i += 1) {
-    const match = lines[i].match(/^\s*(`{3,}|~{3,})\s*([A-Za-z0-9_-]+)?/);
-    if (!match) continue;
-    const marker = match[1][0];
-    const length = match[1].length;
-    const info = String(match[2] || '').toLowerCase();
-    if (!fence) {
-      fence = { marker, length, info, line: i + 1 };
-      if (info === 'mermaid') {
-        diagnostics.push({
-          code: 'mermaid-not-rendered',
-          message: `Line ${i + 1}: Mermaid fences are preserved as code in the CLI renderer. Render them to images before final WeChat sync if exact diagram output is required.`,
-        });
-      }
-    } else if (marker === fence.marker && length >= fence.length) {
-      fence = null;
-    }
-  }
-
-  return diagnostics;
-}
-
 function preprocessMarkdown(markdown) {
   return normalizeTaskListMarkers(markdown);
 }
 
 module.exports = {
-  collectMermaidDiagnostics,
   normalizeTaskListMarkers,
   preprocessMarkdown,
 };

@@ -137,10 +137,14 @@ test('renders math formulas to MathJax SVG-compatible markup', async () => {
   assert.doesNotMatch(result.html, /<style>/);
 });
 
-test('reports mermaid fences as diagnostics', async () => {
-  const result = await renderMarkdown('```mermaid\ngraph TD; A-->B;\n```');
+test('renders mermaid fences to SVG diagrams', async () => {
+  const result = await renderMarkdown('```mermaid\ngraph TD; A[急诊筛查]-->B[HIV检测];\n```');
   assert.equal(result.diagnostics.length, 1);
-  assert.equal(result.diagnostics[0].code, 'mermaid-not-rendered');
+  assert.equal(result.diagnostics[0].code, 'mermaid-rendered');
+  assert.match(result.html, /data-wechat-agent-mermaid="true"/);
+  assert.match(result.html, /<svg/);
+  assert.doesNotMatch(result.html, /<pre/);
+  assert.doesNotMatch(result.html, /```mermaid/);
 });
 
 test('reads local image blobs for sync upload preparation', async () => {
@@ -376,6 +380,56 @@ test('sync converts SVG formulas to uploaded image URLs', async () => {
     });
     assert.equal(result.mediaId, 'draft-media-id');
     assert.match(result.article.content, /https:\/\/mmbiz\.qpic\.cn\/math-1\.png/);
+    assert.doesNotMatch(result.article.content, /<svg/);
+  } finally {
+    global.fetch = originalFetch;
+  }
+});
+
+test('sync converts Mermaid SVG diagrams to uploaded image URLs', async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'wechat-agent-publisher-mermaid-sync-'));
+  fs.writeFileSync(path.join(dir, 'cover.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+  const markdownPath = path.join(dir, 'post.md');
+  fs.writeFileSync(markdownPath, [
+    '---',
+    'title: Mermaid 同步',
+    'cover: cover.png',
+    '---',
+    '',
+    '# Mermaid 同步',
+    '',
+    '```mermaid',
+    'graph TD; A[急诊筛查]-->B[HIV检测];',
+    '```',
+  ].join('\n'));
+
+  let imageUploadCount = 0;
+  const originalFetch = global.fetch;
+  global.fetch = async (url) => {
+    if (String(url).includes('/cgi-bin/token')) {
+      return { json: async () => ({ access_token: 'token', expires_in: 7200 }) };
+    }
+    if (String(url).includes('/material/add_material')) {
+      return { json: async () => ({ media_id: 'cover-media-id' }) };
+    }
+    if (String(url).includes('/media/uploadimg')) {
+      imageUploadCount += 1;
+      return { json: async () => ({ url: `https://mmbiz.qpic.cn/mermaid-${imageUploadCount}.png` }) };
+    }
+    if (String(url).includes('/draft/add')) {
+      return { json: async () => ({ media_id: 'draft-media-id' }) };
+    }
+    throw new Error(`Unexpected URL: ${url}`);
+  };
+
+  try {
+    const result = await syncMarkdownFile(markdownPath, {
+      account: { appId: 'app-id', appSecret: 'app-secret' },
+    });
+    assert.equal(result.mediaId, 'draft-media-id');
+    assert.equal(result.diagnostics[0].code, 'mermaid-rendered');
+    assert.match(result.article.content, /https:\/\/mmbiz\.qpic\.cn\/mermaid-1\.png/);
+    assert.match(result.article.content, /Mermaid 图表/);
     assert.doesNotMatch(result.article.content, /<svg/);
   } finally {
     global.fetch = originalFetch;

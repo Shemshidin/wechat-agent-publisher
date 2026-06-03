@@ -9,7 +9,8 @@ const { buildRenderOptions } = require('./config');
 const { createObsidianLikeImageApp } = require('./image-resolver');
 const { preprocessImageSwipeCallouts } = require('./image-swipe');
 const { normalizeRenderedDomPunctuation } = require('./chinese-punctuation');
-const { collectMermaidDiagnostics, preprocessMarkdown } = require('./markdown-preprocess');
+const { preprocessMarkdown } = require('./markdown-preprocess');
+const { renderMermaidFences } = require('./mermaid-renderer');
 
 let runtimeReady = false;
 
@@ -22,6 +23,10 @@ function ensureDom() {
   global.window = dom.window;
   global.document = dom.window.document;
   global.Node = dom.window.Node;
+  global.Element = dom.window.Element;
+  global.HTMLElement = dom.window.HTMLElement;
+  global.SVGElement = dom.window.SVGElement;
+  global.CSSStyleSheet = dom.window.CSSStyleSheet;
   global.XMLSerializer = dom.window.XMLSerializer;
   global.DOMParser = dom.window.DOMParser;
   global.navigator = dom.window.navigator;
@@ -113,9 +118,11 @@ async function renderMarkdown(markdown, options = {}) {
   if (sourcePath && typeof converter.updateSourcePath === 'function') {
     converter.updateSourcePath(sourcePath);
   }
-  const diagnostics = collectMermaidDiagnostics(parsed.body);
   const normalizedMarkdown = preprocessMarkdown(parsed.body);
-  const preprocessedBody = preprocessImageSwipeCallouts(normalizedMarkdown, {
+  const mermaidResult = await renderMermaidFences(normalizedMarkdown, {
+    themeColor: renderOptions.customColor || '#0366d6',
+  });
+  const preprocessedBody = preprocessImageSwipeCallouts(mermaidResult.markdown, {
     sourcePath,
     vaultRoot: renderOptions.vaultRoot || '',
   });
@@ -128,7 +135,7 @@ async function renderMarkdown(markdown, options = {}) {
     title,
     frontmatter: parsed.frontmatter,
     options: renderOptions,
-    diagnostics,
+    diagnostics: mermaidResult.diagnostics,
   };
 }
 

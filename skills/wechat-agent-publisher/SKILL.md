@@ -73,7 +73,7 @@ The renderer supports Obsidian image swipe callouts:
 
 Math is supported: inline/block LaTeX renders as MathJax SVG for preview. During sync, SVG formulas are rasterized to PNG and uploaded to WeChat.
 
-Mermaid fenced code is detected as a diagnostic. Do not claim Mermaid was rendered by the CLI; render diagrams to image files first when exact diagram output is required.
+Mermaid fenced code renders to SVG for preview/render output. During sync, Mermaid SVG is rasterized to PNG and uploaded to WeChat through the same SVG image path used for formulas. If Mermaid rendering fails, report the CLI diagnostic and note that the original code block was preserved.
 
 ## Sync Workflow
 
@@ -120,6 +120,7 @@ Sync behavior:
 - Article summary is mapped into the WeChat draft `digest` field. Use `summary` in frontmatter for new articles; supported priority is `digest`, `summary`, `abstract`, `description`, then `excerpt`.
 - Article images are uploaded through WeChat's article image API.
 - Formula SVG is rasterized to PNG and uploaded.
+- Mermaid SVG is rasterized to PNG and uploaded.
 - Failed article image uploads become placeholders instead of aborting draft creation.
 - `type: image` and `image_list` image-message publishing are not implemented yet; report that clearly instead of attempting a normal article sync.
 

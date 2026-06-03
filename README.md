@@ -204,9 +204,9 @@ only_fans_can_comment: false
 
 Mermaid：
 
-- CLI 会检测 Mermaid fenced code，并在 `diagnostics` 中提示
-- 当前不会在 CLI 中伪造 Mermaid 渲染结果
-- 如需精确发布，请先把 Mermaid 导出为图片，再嵌入 Markdown
+- 预览和 `render` 时会把 Mermaid fenced code 渲染为 SVG
+- 同步到微信公众号草稿时，Mermaid SVG 会和公式 SVG 一样转 PNG 并上传到微信
+- 如果 Mermaid 语法无法渲染，CLI 会保留原始代码块，并在 `diagnostics` 中报告失败原因
 
 ## Agent Skill
 
@@ -247,6 +247,6 @@ npm test
 - 中文标点规范化
 - 任务列表
 - 数学公式
-- Mermaid diagnostics
+- Mermaid 渲染
 - 微信草稿同步 mock
 - 图片上传失败占位
