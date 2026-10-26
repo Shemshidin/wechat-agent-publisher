@@ -3,6 +3,7 @@
   "fontSize": "xs",
   "themeColor": "blue",
   "customColor": "#0366d6",
+  "coloredHeader": true,
   "advanced": true,
   "normalizeChinesePunctuation": true,
   "vaultRoot": "",

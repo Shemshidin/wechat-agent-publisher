@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const { VALID_HEADING_STYLES } = require('../vendor/heading-style-renderer');
+
 const THEME_ALIASES = {
   github: 'github',
   minimal: 'github',
@@ -51,6 +53,49 @@ const FONT_SIZE_ALIASES = {
 
 const WECHAT_CONVERTER_DEFAULT_THEME_COLOR = 'blue';
 const WECHAT_CONVERTER_DEFAULT_CUSTOM_COLOR = '#0366d6';
+// Every heading's text must use the configured publishing blue. Decorative
+// accents or per-level tints are not sufficient for WeChat draft validation.
+const WECHAT_CONVERTER_DEFAULT_HEADING_COLORS = Array(6).fill(WECHAT_CONVERTER_DEFAULT_CUSTOM_COLOR);
+
+// Section heading (##) decoration styles, aligned with upstream
+// heading-style-renderer HEADING_STYLES. Chinese aliases match the plugin UI.
+const HEADING_STYLE_ALIASES = {
+  default: 'default',
+  follow: 'default',
+  theme: 'default',
+  '跟随主题': 'default',
+  '默认': 'default',
+  'serial-number': 'serial-number',
+  serial: 'serial-number',
+  serialnumber: 'serial-number',
+  number: 'serial-number',
+  numbered: 'serial-number',
+  '序号': 'serial-number',
+  badge: 'badge',
+  '徽标': 'badge',
+  '胶囊': 'badge',
+  pill: 'badge',
+  zen: 'zen',
+  '禅意': 'zen',
+  '留白': 'zen',
+  'left-border': 'left-border',
+  leftborder: 'left-border',
+  '左侧色块': 'left-border',
+  '左边框': 'left-border',
+  'bottom-line': 'bottom-line',
+  bottomline: 'bottom-line',
+  underline: 'bottom-line',
+  '底边下划线': 'bottom-line',
+  '下划线': 'bottom-line',
+  bubble: 'bubble',
+  '气泡': 'bubble',
+  card: 'card',
+  '卡片': 'card',
+  'double-line': 'double-line',
+  doubleline: 'double-line',
+  '双细下划线': 'double-line',
+  '双下划线': 'double-line',
+};
 
 const DEFAULT_OPTIONS = {
   theme: 'wechat',
@@ -62,7 +107,9 @@ const DEFAULT_OPTIONS = {
   macCodeBlock: true,
   codeLineNumber: true,
   sidePadding: 16,
-  coloredHeader: false,
+  coloredHeader: true,
+  headingColors: WECHAT_CONVERTER_DEFAULT_HEADING_COLORS,
+  headingStyle: 'default',
   showImageCaption: true,
   normalizeChinesePunctuation: true,
   advanced: true,
@@ -71,6 +118,13 @@ const DEFAULT_OPTIONS = {
 function normalizeTheme(value) {
   const raw = String(value || '').trim();
   return THEME_ALIASES[raw] || THEME_ALIASES[raw.toLowerCase()] || DEFAULT_OPTIONS.theme;
+}
+
+function normalizeHeadingStyle(value) {
+  const raw = String(value || '').trim();
+  const resolved = HEADING_STYLE_ALIASES[raw] || HEADING_STYLE_ALIASES[raw.toLowerCase()];
+  if (resolved && VALID_HEADING_STYLES.includes(resolved)) return resolved;
+  return DEFAULT_OPTIONS.headingStyle;
 }
 
 function normalizeFontSize(value) {
@@ -103,14 +157,19 @@ function loadProjectConfig(startDir = process.cwd()) {
 
 function buildRenderOptions(raw = {}) {
   const merged = { ...DEFAULT_OPTIONS, ...(raw || {}) };
+  const headingColors = Array.isArray(merged.headingColors)
+    ? WECHAT_CONVERTER_DEFAULT_HEADING_COLORS.map((color, index) => merged.headingColors[index] || color)
+    : WECHAT_CONVERTER_DEFAULT_HEADING_COLORS;
   return {
     ...merged,
     theme: normalizeTheme(merged.theme),
     fontSize: normalizeFontSize(merged.fontSize),
+    headingStyle: normalizeHeadingStyle(merged.headingStyle),
     macCodeBlock: merged.advanced === false ? false : merged.macCodeBlock !== false,
     codeLineNumber: merged.advanced === false ? false : merged.codeLineNumber !== false,
     showImageCaption: merged.showImageCaption !== false,
     normalizeChinesePunctuation: merged.normalizeChinesePunctuation !== false,
+    headingColors,
   };
 }
 
@@ -129,10 +188,13 @@ module.exports = {
   DEFAULT_OPTIONS,
   WECHAT_CONVERTER_DEFAULT_THEME_COLOR,
   WECHAT_CONVERTER_DEFAULT_CUSTOM_COLOR,
+  WECHAT_CONVERTER_DEFAULT_HEADING_COLORS,
   THEME_ALIASES,
   FONT_SIZE_ALIASES,
+  HEADING_STYLE_ALIASES,
   normalizeTheme,
   normalizeFontSize,
+  normalizeHeadingStyle,
   loadProjectConfig,
   readJsonFile,
   buildRenderOptions,

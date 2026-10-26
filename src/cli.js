@@ -13,6 +13,9 @@ function printHelp() {
 Render options:
   --theme <name>       Theme: minimal|classic|elegant|paper|grid|typo|media|colorful
   --font-size <size>   Font size: xs|small|normal|large|xl or 1..5. Default: xs / 小
+  --heading-style <s>  Section (##) heading style: default|serial-number|badge|zen|left-border|bottom-line|bubble|card|double-line
+                       Chinese aliases: 跟随主题|序号|徽标|禅意|左侧色块|底边下划线|气泡|卡片|双细下划线. Default: default / 跟随主题
+                       Can also be set per article via frontmatter \`headingStyle\`
   --output <file>      Output HTML file
   --full               Write a complete HTML document instead of a fragment
   --vault-root <dir>   Optional Obsidian vault root for resolving wiki/local images
@@ -70,7 +73,10 @@ function toCamel(value) {
 function loadOptions(args, inputPath) {
   const config = args.config
     ? readJsonFile(args.config)
-    : loadProjectConfig(inputPath ? path.dirname(path.resolve(inputPath)) : process.cwd());
+    : {
+      ...loadProjectConfig(process.cwd()),
+      ...loadProjectConfig(inputPath ? path.dirname(path.resolve(inputPath)) : process.cwd()),
+    };
   return {
     ...config,
     ...args,
@@ -83,6 +89,7 @@ function loadOptions(args, inputPath) {
       openComment: args.openComment !== undefined ? args.openComment : config.account?.openComment,
       onlyFansCanComment: args.onlyFansCanComment !== undefined ? args.onlyFansCanComment : config.account?.onlyFansCanComment,
     },
+    coloredHeader: args.coloredHeader !== undefined ? args.coloredHeader : config.coloredHeader,
     advanced: args.advanced,
   };
 }
@@ -104,17 +111,19 @@ async function run() {
   }
 
   const options = loadOptions(args, inputPath);
+  const headingStyleFromCli = args.headingStyle !== undefined;
   if (command === 'render') {
     const renderOptions = buildRenderOptions(options);
     const result = await renderMarkdownFile(inputPath, {
       ...renderOptions,
+      headingStyleFromCli,
       full: !!args.full,
     });
     const output = args.output || options.output;
     if (output) {
       fs.mkdirSync(path.dirname(path.resolve(output)), { recursive: true });
       fs.writeFileSync(output, result.html, 'utf8');
-      console.log(JSON.stringify({ ok: true, output: path.resolve(output), title: result.title, theme: result.options.theme, fontSize: result.options.fontSize, diagnostics: result.diagnostics }, null, 2));
+      console.log(JSON.stringify({ ok: true, output: path.resolve(output), title: result.title, theme: result.options.theme, fontSize: result.options.fontSize, headingStyle: result.options.headingStyle, diagnostics: result.diagnostics }, null, 2));
     } else {
       if (result.diagnostics?.length) {
         console.error(JSON.stringify({ diagnostics: result.diagnostics }, null, 2));
@@ -128,6 +137,7 @@ async function run() {
     const result = await syncMarkdownFiles(inputPaths, {
       ...buildRenderOptions(options),
       ...options,
+      headingStyleFromCli,
       onImageProgress: (current, total) => {
         console.error(`[images] ${current}/${total}`);
       },

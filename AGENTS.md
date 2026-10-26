@@ -41,3 +41,5 @@ The renderer supports Obsidian image swipe callouts:
 Math formulas render as MathJax SVG for preview and are rasterized/uploaded during sync. Mermaid fences are diagnostic-only; render Mermaid diagrams to images before final sync.
 
 Do not store real WeChat AppSecret values in committed files.
+
+Recent changes are summarized in `CHANGELOG.md` (current: 0.2.0 — upstream sync to wechat-converter 2.12.0 plus the new `--heading-style` 分节标题 option). The `vendor/` directory is fully generated; never hand-edit it — regenerate with `npm run sync:vendor`.

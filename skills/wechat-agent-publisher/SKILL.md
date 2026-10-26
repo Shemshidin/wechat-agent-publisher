@@ -50,7 +50,8 @@ Default rendering choices:
 2. Render a browser preview first unless the user explicitly asks for a fragment: `node src/cli.js render <file.md> --full --output out/<name>.preview.html`.
 3. If the user asks for a theme, pass `--theme <name>`.
 4. If the user asks for a font size, pass `--font-size <size>`.
-5. Read the JSON result and report the output path, selected theme/font size, and any diagnostics.
+5. If the user asks for a section-heading look for `##` headings (分节标题), pass `--heading-style <style>`. Valid values: `default`/跟随主题, `serial-number`/序号, `badge`/徽标, `zen`/禅意, plus `left-border`/左侧色块, `bottom-line`/底边下划线, `bubble`/气泡, `card`/卡片, `double-line`/双细下划线. Articles may also set `headingStyle` in frontmatter; the CLI flag overrides frontmatter, frontmatter overrides config.
+6. Read the JSON result and report the output path, selected theme/font size/heading style, and any diagnostics.
 
 Example:
 
@@ -151,6 +152,7 @@ Preferred config keys:
 {
   "theme": "classic",
   "fontSize": "xs",
+  "headingStyle": "default",
   "themeColor": "blue",
   "customColor": "#0366d6",
   "advanced": true,
@@ -163,6 +165,18 @@ Preferred config keys:
   }
 }
 ```
+
+Since the v2.12.0 upstream sync, upstream theme tuning keys pass through the config as well: `lineHeight`, `paragraphGap`, and `letterSpacing` (numbers; unset means the theme default).
+
+## Upstream Sync
+
+The rendering core under `vendor/` comes from the local `obsidian-wechat-converter` checkout. After updating that checkout, re-sync with:
+
+```bash
+node scripts/sync-vendor.mjs --upstream D:\Code\wechat-converter
+```
+
+The script bundles the upstream theme and draft-cleaner modules and re-applies the CLI patch that allows `file://` image URLs for local previews. Keep the upstream working tree clean before syncing.
 
 ## Safety
 

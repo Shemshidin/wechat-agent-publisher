@@ -1,6 +1,6 @@
 {
   "name": "wechat-agent-publisher",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agent-friendly CLI and skill for rendering Markdown to WeChat-safe HTML and syncing Official Account drafts.",
   "main": "src/cli.js",
   "bin": {
@@ -9,6 +9,7 @@
   "scripts": {
     "render": "node src/cli.js render",
     "sync": "node src/cli.js sync",
+    "sync:vendor": "node scripts/sync-vendor.mjs",
     "test": "node --test"
   },
   "keywords": [
