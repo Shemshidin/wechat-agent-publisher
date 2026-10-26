@@ -225,6 +225,23 @@ test('swipe gallery captions keep a readable line-height', async () => {
   assert.match(cap[0], /line-height:\s*1\.5/, 'caption must set line-height (parent table row sets line-height:0)');
 });
 
+test('does not style ordinary paragraphs that merely end with a citation sup', async () => {
+  const md = [
+    '| A | B |',
+    '|---|---|',
+    '| 1 | 2 |',
+    '',
+    '病史应包括确切机制和持续时间等总体健康状况。<sup>27</sup>',
+    '',
+    '> - 条目一',
+    '>',
+    '> 普通段落结尾带引用。<sup>95</sup>',
+  ].join("\n");
+  const result = await renderMarkdown(md);
+  assert.doesNotMatch(result.html, /12px;color:#8a8a8a[^>]*>[^<]*病史应包括/);
+  assert.doesNotMatch(result.html, /12px;color:#8a8a8a[^>]*>[^<]*普通段落/);
+});
+
 test('renders markdown to wechat html fragment', async () => {
   const result = await renderMarkdown('# 标题\n\n正文 **加粗**', {});
   assert.equal(result.title, '标题');

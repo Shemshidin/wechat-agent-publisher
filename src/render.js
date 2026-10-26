@@ -164,6 +164,13 @@ function startsWithFootnoteMarker(el) {
   if (!el) return false;
   const first = el.firstElementChild;
   if (!first || first.tagName !== 'SUP') return false;
+  // The marker must OPEN the paragraph: a trailing citation <sup>27</sup> at the
+  // end of ordinary body text is not a footnote marker (it is still the first
+  // element child when no other tags precede it).
+  for (const node of el.childNodes) {
+    if (node === first) break;
+    if (node.nodeType === 3 && (node.textContent || '').trim()) return false;
+  }
   const marker = (first.textContent || '').trim();
   return marker.length > 0 && marker.length <= 3 && /^[a-zA-Z0-9*†‡§#]+$/.test(marker);
 }
