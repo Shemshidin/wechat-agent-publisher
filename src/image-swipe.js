@@ -63,7 +63,7 @@ function renderImagePanel(image, context) {
   const alt = image.alt || image.src;
   const caption = alt.replace(/\.(jpg|jpeg|png|gif|webp|svg|bmp)$/i, '');
   const captionHtml = caption
-    ? `<figcaption style="font-size: 12px; color: #999; text-align: center; margin-top: 8px;">${escapeHtml(caption)}</figcaption>`
+    ? `<figcaption style="font-size: 12px; line-height: 1.5; color: #999; text-align: center; margin-top: 8px;">${escapeHtml(caption)}</figcaption>`
     : '';
 
   return [
